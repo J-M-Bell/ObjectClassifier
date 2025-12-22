@@ -11,6 +11,8 @@ from keras.callbacks import ModelCheckpoint
 from keras.layers import SimpleRNN, Dense, LSTM, Dropout, Embedding
 from keras.losses import CategoricalCrossentropy, BinaryCrossentropy
 from keras.models import Sequential
-from keras.dataset import
+from keras.datasets import cifar10
 from sklearn.preprocessing import OrdinalEncoder
 
+
+data= cifar10.load_data()

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from keras import Input, activations
 from keras.callbacks import ModelCheckpoint
-from keras.layers import Dense, Flatten
+from keras.layers import Dense, Flatten, Conv2D, MaxPool2D
 from keras.losses import CategoricalCrossentropy
 from keras.models import Sequential
 from keras.datasets import cifar10
@@ -48,6 +48,20 @@ print(X_train.shape)
 #Testing
 print(X_train.shape[1:2])
 #Model Creation
+# model = Sequential([
+#     Input(shape=X_train.shape[1:4]),
+#     Flatten(),
+#     Dense(units=2, activation=activations.relu),
+#     Dense(units=2000, activation=activations.relu),
+#     Dense(units=4, activation=activations.relu),
+#     Dense(units=1500, activation=activations.relu),
+#     Dense(units=6, activation=activations.relu),
+#     Dense(units=1000, activation=activations.relu),
+#     Dense(units=20, activation=activations.relu),
+#     Dense(units=1000, activation=activations.relu),
+#     Dense(units=y_train.shape[1], activation=activations.softmax)
+# ])
+
 model = Sequential([
     Input(shape=X_train.shape[1:4]),
     Flatten(),

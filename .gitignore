@@ -3,6 +3,5 @@ object_classifier_model.h5
 object_classifier_model.keras
 object_classifier_model2.h5
 object_classifier_model3.h5
-conv_weights/Conv2D Model 1/50e-12000bs-0.7900.keras
-conv_weights/Conv2D Model 2/100e-12000bs-0.6467.keras
-conv_weights/Conv2D Model 3/20e-200bs-0.5008.keras
+IMG_0021.WEBP
+conv_weights/Conv2D Model/20e-100bs-1.1098.keras

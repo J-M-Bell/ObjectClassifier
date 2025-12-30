@@ -5,3 +5,6 @@ object_classifier_model2.h5
 object_classifier_model3.h5
 IMG_0021.WEBP
 conv_weights/Conv2D Model/20e-100bs-1.1098.keras
+ObjectClassifierModel.mlpackage/Manifest.json
+ObjectClassifierModel.mlpackage/Data/com.apple.CoreML/model.mlmodel
+ObjectClassifierModel.mlpackage/Data/com.apple.CoreML/weights/weight.bin

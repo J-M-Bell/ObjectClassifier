@@ -33,14 +33,14 @@
 		DA9359462F0219A900721B37 /* Exceptions for "ObjectClassifier" folder in "ObjectClassifierTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				ObjectClassifierModel.mlpackage,
+				Data/ObjectClassifierModel.mlpackage,
 			);
 			target = DA9359242F0218FA00721B37 /* ObjectClassifierTests */;
 		};
 		DA9359472F0219A900721B37 /* Exceptions for "ObjectClassifier" folder in "ObjectClassifierUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				ObjectClassifierModel.mlpackage,
+				Data/ObjectClassifierModel.mlpackage,
 			);
 			target = DA93592E2F0218FA00721B37 /* ObjectClassifierUITests */;
 		};

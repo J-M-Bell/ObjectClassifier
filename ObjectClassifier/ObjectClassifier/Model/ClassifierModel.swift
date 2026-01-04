@@ -12,6 +12,9 @@ import CoreML
 /// A struct model that holds UI Model class for the ClassifierView
 struct ClassifierModel {
     
+    /// - TODO: create get and set method for the instance variable
+    /// - TODO: create unit test file for get and set methods
+
     /// list of targets from the model
     let classes = ["Airplane", "Automobile", "Bird", "Cat", "Deer", "Dog", "Frog", "Horse", "Ship", "Truck"]
     

@@ -9,7 +9,9 @@ import SwiftUI
 import UniformTypeIdentifiers // Required for UTType
 import CoreML
 
-struct ContentView: View {
+struct ClassifierView: View {
+    @State var classifier = ClassifierModel()
+    var classifierVM = ClassifierViewModel()
     @State private var showingFileImporter = false
     @State private var importedFileURLs: [URL] = []
     @State private var importError: Error?
@@ -212,7 +214,7 @@ struct ContentView: View {
                 prediction = "Truck"
             default:
                 print("Error occured in switch")
-            }2
+            }
             DispatchQueue.main.async {
                 self.label = prediction
             }

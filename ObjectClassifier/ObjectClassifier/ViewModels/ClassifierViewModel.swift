@@ -13,59 +13,49 @@ import CoreML
 class ClassifierViewModel {
     
     /// classifier that is passed in from view
-    var classifier: ClassifierModel
-    ///class that selected as the prediction of the image
-    var prediction = ""
-    
+    private var classifier: ClassifierModel
+    /// Object Classifier model object
+    private let model: ObjectClassifierModel = {
+        do {
+            let config = MLModelConfiguration()
+            return try ObjectClassifierModel(configuration: config)
+        } catch {
+            print(error)
+            fatalError("Error loading model")
+        }
+    }()
     ///enumeration for possible errors
     enum DataError: Error {
         case missingData
     }
     
+    
     init() {
-        self.classifier = ClassifierModel(image: nil)
-        classifyImage()
+        self.classifier = ClassifierModel()
     }
     
-    /// A helper function that classifies a UIImage based on the prediction from
-    /// the Object Classifier Model
-    private func classifyImage() {
-        // TODO: Configure your classifier model as needed.
-        // If your ClassifierModel has a failable or throwing initializer, update this accordingly.
-        // Example placeholder initialization:
-        let image = classifier.image
-        var context: CGContext?
-        var pointer: UnsafeMutablePointer<UInt8>?
-        var bytesPerPixel: Int?
-        if let image = image, let result = try? getImageInformation(image: image) {
-            context = result.0
-            pointer = result.1
-            bytesPerPixel = result.2
-        } else {
-            // Handle missing image or extraction failure as needed
-            // e.g., keep values nil or log a message
-            print("Failed to extract image information")
-        }
-        var multiArray: MLMultiArray?
-        multiArray = try? makeMultiArrayFromPixelData(context: context!, pixelDataPointer: pointer!, bytesPerPixel: bytesPerPixel!)
-        findPrediction(multiArray: multiArray!)
+    /// A function that process a image and returns the class that was
+    /// predicted by the Object Classifier Model
+    func classifyImage(image: UIImage) -> String? {
+        let multiArray = try? processImage(image: image)
+        let prediction = try? getPrediction(multiArray: multiArray!)
+        return prediction
     }
-    
     
     /// A helper function that processes an image to be made into a MLMultiArray
     ///  - Parameter image: UIImage - image passed in from the user
     ///
-    ///  - Returns the CGContext of the image
-    ///  - Returns a pointer to the pixel data
-    ///  - Returns the bytes per pixel
+    /// - Returns: MLMultiArray of RGB pixel value of the image passed in by the user
     ///
-    ///  - Throws missing data error
-    private func getImageInformation(image: UIImage) throws -> (CGContext, UnsafeMutablePointer<UInt8>, Int) {
+    /// - Throws: missing data error
+    private func processImage(image: UIImage) throws -> MLMultiArray? {
+        // convert UIImage into CGImage
         guard let cgImage = image.cgImage else {
             print("Could not convert image to CGImage")
             throw DataError.missingData
         }
 
+        // create dimension variables for CGContext
         let width = Int(image.size.width)
         let height = Int(image.size.height)
         let colorSpace = CGColorSpaceCreateDeviceRGB()
@@ -74,6 +64,7 @@ class ClassifierViewModel {
         let bytesPerRow = bytesPerPixel * width
         let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
 
+        // Create CGContext for image processing
         guard let context = CGContext(
             data: nil,
             width: width,
@@ -87,28 +78,20 @@ class ClassifierViewModel {
             throw DataError.missingData
         }
 
-        // Draw the image into the context (resize to 32x32 if needed by your model)
+        // Draw the image into the context to resize the image to 32x32
         context.draw(cgImage, in: CGRect(x: 0, y: 0, width: 32, height: 32))
 
+        // Create data pointer to bind to pixel data memory location
         guard let data = context.data else {
             print("Could not create data pointer")
             throw DataError.missingData
         }
         let pixelData = data.bindMemory(to: UInt8.self, capacity: context.bytesPerRow * context.height)
-        return (context, pixelData, bytesPerPixel)
-    }
-    
-    /// A helper function that convert pixel data into a MLMultiArray
-    /// - Parameters: context: CGContext - context object of CGImage
-    /// - Parameters: pixelDataPointer: UnsafeMutablePointer<UInt8> - pointer to the memory location of the pixel data
-    /// - Parameters: bytesPerPixel: Int - number of byte per pixel
-    ///
-    /// - Returns: MLMultiArray of RGB pixel value of the image passed in by the user
-    ///
-    /// - Throws: missing error if data is missing
-    private func makeMultiArrayFromPixelData(context: CGContext, pixelDataPointer: UnsafeMutablePointer<UInt8>, bytesPerPixel: Int) throws -> MLMultiArray? {
         
-        // 4. Calculate the offset for the specific pixel
+        
+        /// Create multiple arrays to hold different pixel values depending
+        /// on the RBG channels of the image to be used to create the
+        /// MLMultiArray input to the model
         var pixelArray = [Float]()
         var x_r_Array = [Float]()
         var x_g_Array = [Float]()
@@ -118,14 +101,16 @@ class ClassifierViewModel {
         var y_g_Array = [Float]()
         var y_b_Array = [Float]()
         
+        /// Loop to cycle through the pixel data and store that data in the arrays
+        /// then append them together
         for y in 1...32 {
             for x in 1...32 {
                 let pixelInfo: Int = ((context.bytesPerRow * y) + x * bytesPerPixel)
-                let r = Float(pixelDataPointer[pixelInfo]) / 255.0
+                let r = Float(pixelData[pixelInfo]) / 255.0
                 x_r_Array.append(r)
-                let g = Float(pixelDataPointer[pixelInfo + 1]) / 255.0
+                let g = Float(pixelData[pixelInfo + 1]) / 255.0
                 x_g_Array.append(g)
-                let b = Float(pixelDataPointer[pixelInfo + 2]) / 255.0
+                let b = Float(pixelData[pixelInfo + 2]) / 255.0
                 x_b_Array.append(b)
             }
             y_r_Array.append(contentsOf: x_r_Array)
@@ -139,22 +124,27 @@ class ClassifierViewModel {
         pixelArray.append(contentsOf: y_g_Array)
         pixelArray.append(contentsOf: y_b_Array)
         
-        // The 'shape' must match the total number of elements in the 'floatArray'.
+        // Create MLShapedArray from pixel data array
         guard let shapedArray = try? MLShapedArray<Float>(scalars: pixelArray, shape: [1, 32, 32, 3])
         else {
             print("Error creating MLShapedArray. Check that the shape matches the array count.")
             throw DataError.missingData
         }
-        // 2. Convert the MLShapedArray to an MLMultiArray using its initializer.
+        // Convert the MLShapedArray to an MLMultiArray
         let multiArray = MLMultiArray(shapedArray)
+        
         return multiArray
     }
+
     
     /// A helper function that find the prediction from the object classifier model based on the values in the MLMultiArray
     /// - Parameters: multiArray: MLMultiArray - array of pixel data for model input
-    private func findPrediction(multiArray: MLMultiArray) {
+    ///
+    /// - Returns: the prediction of the ObjectClassifierModel object
+    private func getPrediction(multiArray: MLMultiArray) -> String {
+        var prediction = "Could not get prediction."
         do {
-            var model = self.classifier.model
+            let model = self.model
             let input = ObjectClassifierModelInput(keras_tensor_50: multiArray)
             let output = try model.prediction(input: input)
             let outputArray = output.Identity
@@ -166,12 +156,13 @@ class ClassifierViewModel {
             
             let maxElement = probs.max()
             let indexOfMax = probs.firstIndex(of: maxElement!)
-            self.prediction = self.classifier.classes[indexOfMax!]
+            prediction = self.classifier.classes[indexOfMax!]
         } catch DataError.missingData {
             print("Error: Missing input data.")
         } catch {
             print(error.localizedDescription)
         }
+        return prediction
     }
 
 }

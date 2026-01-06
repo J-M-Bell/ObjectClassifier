@@ -27,6 +27,7 @@
 		DA9359182F0218F900721B37 /* ObjectClassifier.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ObjectClassifier.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DA9359252F0218FA00721B37 /* ObjectClassifierTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ObjectClassifierTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DA93592F2F0218FA00721B37 /* ObjectClassifierUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ObjectClassifierUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DABB0A252F0C1CC400BA817E /* ObjectClassifier.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = ObjectClassifier.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -96,6 +97,7 @@
 		DA93590F2F0218F900721B37 = {
 			isa = PBXGroup;
 			children = (
+				DABB0A252F0C1CC400BA817E /* ObjectClassifier.xctestplan */,
 				DA93591A2F0218F900721B37 /* ObjectClassifier */,
 				DA9359282F0218FA00721B37 /* ObjectClassifierTests */,
 				DA9359322F0218FA00721B37 /* ObjectClassifierUITests */,

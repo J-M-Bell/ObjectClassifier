@@ -42,6 +42,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Data/ObjectClassifierModel.mlpackage,
+				"United_Airlines_Boeing_777-200_Meulemans.jpg",
 			);
 			target = DA93592E2F0218FA00721B37 /* ObjectClassifierUITests */;
 		};
@@ -60,11 +61,6 @@
 		DA9359282F0218FA00721B37 /* ObjectClassifierTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ObjectClassifierTests;
-			sourceTree = "<group>";
-		};
-		DA9359322F0218FA00721B37 /* ObjectClassifierUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ObjectClassifierUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -100,7 +96,6 @@
 				DABB0A252F0C1CC400BA817E /* ObjectClassifier.xctestplan */,
 				DA93591A2F0218F900721B37 /* ObjectClassifier */,
 				DA9359282F0218FA00721B37 /* ObjectClassifierTests */,
-				DA9359322F0218FA00721B37 /* ObjectClassifierUITests */,
 				DA9359192F0218F900721B37 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -175,9 +170,6 @@
 			);
 			dependencies = (
 				DA9359312F0218FA00721B37 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				DA9359322F0218FA00721B37 /* ObjectClassifierUITests */,
 			);
 			name = ObjectClassifierUITests;
 			packageProductDependencies = (
@@ -490,7 +482,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = ZN3W5ZYC98;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = jm.bell.projects.ObjectClassifierTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -512,7 +504,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = ZN3W5ZYC98;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = jm.bell.projects.ObjectClassifierTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -533,6 +525,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = ZN3W5ZYC98;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = jm.bell.projects.ObjectClassifierUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -553,6 +546,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = ZN3W5ZYC98;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = jm.bell.projects.ObjectClassifierUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

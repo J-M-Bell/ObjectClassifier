@@ -11,31 +11,46 @@ import CoreML
 import Foundation
 @testable import ObjectClassifier
 
+/// A test suite for testing the ClassifierViewModel class methods
 class ClassifierViewModelTests {
-
     
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-    }
-    
-    @Test(.tags(.unitTests)) func processImageTest() throws {
+    /// This test is designed to test the ability of the processImage method to convert a UIImage to the
+    /// correct size and create a multi-array of the pixel data values
+    @Test(.tags(.ClassifierViewModelTests)) func processImageTest() throws {
         let vm = ClassifierViewModel()
         let width = 40
         let height = 40
         let processedImageWidth = 32
         let processedImageHeight = 32
-        let image = UIImage.from(color: UIColor.white, width: width, height: height)
-//        let image2 = UIImage.from(color: UIColor.white, size: [32, 32])
-        let testMultiArray = try fillMLMultiArray(shape: [1, 32, 32, 3], withValue: 1)
+        let image = UIImage.from(color: UIColor.black, width: width, height: height)
+        let testMultiArray = try fillMLMultiArray(shape: [1, 32, 32, 3], withValue: 0)
         let actualMultiArray = try vm.processImage(image: image!, processedImageWidth: processedImageWidth, processedImageHeight: processedImageHeight)
         let areEqual = areMLMultiArraysEqual(testMultiArray, actualMultiArray!)
         #expect(areEqual)
 //        #expect(testMultiArray.count == actualMultiArray?.count)
     }
+    
+    /// This test is designed to test that the getModelOutput method returns a Float array of ten values
+    /// that will be used to determine the prediction
+    @Test(.tags(.ClassifierViewModelTests)) func getModelOutputTest() throws {
+        let vm = ClassifierViewModel()
+        let testMultiArray = try fillMLMultiArray(shape: [1, 32, 32, 3], withValue: 1)
+        let probs = try vm.getModelOutput(multiArray: testMultiArray)
+        #expect(probs.count == 10)
+    }
 
+    /// Test function designed to test that index used to get the prediction matches the right String in
+    /// the classes variable in ClassifierModel
+    @Test(.tags(.ClassifierViewModelTests)) func getPredictionTest() throws {
+        let vm = ClassifierViewModel()
+        let probs: [Float] = [0.01, 0.2, 0.005, 0.04, 0.112, 0.0005, 0.00001, 0.998, 0.000001, 0.4]
+        let prediction = try vm.getPrediction(probs: probs)
+        #expect(prediction == "Horse")
+    }
+    
 
-    /// Helper testing function that takes in two MLMultiArray objects and determines
-    /// if those object have all of the same values
+    /// General helper testing function that takes in two MLMultiArray objects and determines
+    /// if those objects have all of the same values
     /// - Parameters: multiArray1: MLMultiArray - the first MLMultiArray object
     /// - Parameters: multiArray2: MLMultiArray -  the second MLMultiArray object
     ///
@@ -86,7 +101,7 @@ class ClassifierViewModelTests {
     }
     
     /// Helper function to run for testing ClassiferViewModel processImage method
-    /// - Parameters: shape: [Int} - array of ints declaring the shape of the multiArray
+    /// - Parameters: shape: [Int] - array of ints declaring the shape of the multiArray
     ///
     /// - Returns: MLMultiArray object that is filled with zeros
     func fillMLMultiArray(shape: [Int], withValue: Int) throws -> MLMultiArray {

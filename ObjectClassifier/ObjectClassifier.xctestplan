@@ -1,0 +1,44 @@
+{
+  "configurations" : [
+    {
+      "id" : "06A53D32-9827-4D46-975C-8C445A318A84",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "environmentVariableEntries" : [
+      {
+        "key" : "CGBITMAP_CONTEXT_LOG_ERRORS",
+        "value" : ""
+      }
+    ],
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:ObjectClassifier.xcodeproj",
+      "identifier" : "DA9359172F0218F900721B37",
+      "name" : "ObjectClassifier"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:ObjectClassifier.xcodeproj",
+        "identifier" : "DA9359242F0218FA00721B37",
+        "name" : "ObjectClassifierTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:ObjectClassifier.xcodeproj",
+        "identifier" : "DA93592E2F0218FA00721B37",
+        "name" : "ObjectClassifierUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

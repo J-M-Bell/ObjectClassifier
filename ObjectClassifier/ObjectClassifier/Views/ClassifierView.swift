@@ -7,7 +7,6 @@
 
 import SwiftUI
 import UniformTypeIdentifiers // Required for UTType
-import CoreML
 
 struct ClassifierView: View {
     var classifierVM = ClassifierViewModel()
@@ -21,7 +20,7 @@ struct ClassifierView: View {
         VStack(spacing: 16) {
             Text("Welcome to the Object Classifier Mobile App!")
 
-            Button("Import Files") {
+            Button("Import Image") {
                 showingFileImporter = true
             }
             .foregroundColor(.white)
@@ -46,9 +45,9 @@ struct ClassifierView: View {
                 }
             )
 
-            if !importedFileURLs.isEmpty {
-                Text("Successfully imported \(importedFileURLs.count) file(s).")
-            }
+//            if !importedFileURLs.isEmpty {
+//                print("Successfully imported \(importedFileURLs.count) file(s).")
+//            }
 
             if let uiImage = importedImage {
                 Image(uiImage: uiImage)
@@ -70,7 +69,6 @@ struct ClassifierView: View {
         .padding()
     }
 
-    // Non-mutating helper that updates @State safely from the main thread
     /// Non-mutating helper that updates @State safely from the main thread
     /// - Parameters: urls: [URL} - array of URL objectss from user
     private func handleImportedFiles(_ urls: [URL]) {
@@ -82,13 +80,12 @@ struct ClassifierView: View {
             if needsStop { url.stopAccessingSecurityScopedResource() }
         }
 
-        do {
+        do { // calls image classification method and updates the View
             let data = try Data(contentsOf: url)
             if let image = UIImage(data: data) {
                 DispatchQueue.main.async {
                     self.importedImage = image
                     self.label = self.classifierVM.classifyImage(image: image)
-//                    self.createPrediction(image: image)
                 }
             } else {
                 print("Error: Could not create UIImage from data")
@@ -100,7 +97,6 @@ struct ClassifierView: View {
             print("Error reading file: \(error.localizedDescription)")
         }
     }
-
 }
 
 #Preview {

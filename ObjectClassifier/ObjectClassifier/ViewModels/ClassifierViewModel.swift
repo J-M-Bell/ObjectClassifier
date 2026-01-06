@@ -34,14 +34,18 @@ class ClassifierViewModel {
         self.classifier = ClassifierModel()
     }
     
-    /// A function that process a image and returns the class that was
+    /// ClassifierViewModel class's main function that process a image and returns the class that was
     /// predicted by the Object Classifier Model
+    /// - Parameters: image: UIImage - UIImage from user
+    ///
+    /// - Returns: the prediction from the ObjectClassifierModel object
     func classifyImage(image: UIImage) -> String? {
         do {
             let processedImageWidth = 32
             let processedImageHeight = 32
             guard let multiArray = try processImage(image: image, processedImageWidth: processedImageWidth, processedImageHeight: processedImageHeight) else { return nil }
-            let prediction = getPrediction(multiArray: multiArray)
+            let probs = try getModelOutput(multiArray: multiArray)
+            let prediction = try getPrediction(probs: probs)
             return prediction
         } catch {
             print("Error processing image: \(error)")
@@ -50,6 +54,7 @@ class ClassifierViewModel {
     }
     
     /// A helper function that processes an image to be made into a MLMultiArray
+    /// Note: do not call this function, use classifyImage method
     ///  - Parameter image: UIImage - image passed in from the user
     ///
     /// - Returns: MLMultiArray of RGB pixel value of the image passed in by the user
@@ -63,8 +68,10 @@ class ClassifierViewModel {
             throw DataError.missingData
         }
 
+        // resize CGImage to correct size for model input
         let newSize = CGSize(width: processedImageWidth, height: processedImageHeight)
         let resizedCGImage = resizeCGImage(image: cgImage, newSize: newSize)
+        
         // create dimension variables for CGContext
         let width = processedImageWidth
         let height = processedImageHeight
@@ -72,16 +79,11 @@ class ClassifierViewModel {
         let bitsPerComponent = 8
         let bytesPerPixel = 4 // RGBA
         let bytesPerRow = bytesPerPixel * width
-//        let bitmapInfo = CGImageAlphaInfo.none.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
-//        let testBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue | kCGBitmapByteOrder32Host.rawValue)
-        let testBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue)
-//        let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
-
+        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue)
         let imgPointer = UnsafeMutableRawPointer.allocate(
                 byteCount: bytesPerRow * height,
                 alignment: MemoryLayout<UInt8>.alignment)
         
-//        var intArray = [UInt8](repeating: 0, count: dataSize)
         
         // Create CGContext for image processing
         guard let context = CGContext(
@@ -91,64 +93,63 @@ class ClassifierViewModel {
             bitsPerComponent: bitsPerComponent,
             bytesPerRow: bytesPerRow,
             space: colorSpace,
-            bitmapInfo: testBitmapInfo
+            bitmapInfo: bitmapInfo
         ) else {
             print("Could not create bitmap context")
             throw DataError.missingData
         }
 
-        // Draw the image into the context to resize the image to 32x32
+        // Draw the image into the context
         context.draw(resizedCGImage!, in: CGRect(x: 0, y: 0, width: processedImageWidth, height: processedImageHeight))
 
-        // Create data pointer to bind to pixel data memory location
+        // Create data pointer from CGContext
         guard let data = context.data else {
             print("Could not create data pointer")
             throw DataError.missingData
         }
+        
+        // Creating a bound data pointer to memory location where pixel data is stored
         let pixelData = data.bindMemory(to: UInt8.self, capacity: context.bytesPerRow * context.height)
         
         
-        /// Create multiple arrays to hold different pixel values depending
-        /// on the RBG channels of the image to be used to create the
-        /// MLMultiArray input to the model
+        // Main array to hold final RGB pixel values in the correct order
         var pixelArray = [Float]()
+        
+        // arrays that hold the rgb values per row of pixel data
         var x_r_Array = [Float]()
         var x_g_Array = [Float]()
         var x_b_Array = [Float]()
-//        var x_a_Array = [Float]()
         
+        // arrays that will contain the entire pixel data for each channel
         var y_r_Array = [Float]()
         var y_g_Array = [Float]()
         var y_b_Array = [Float]()
-//        var y_a_Array = [Float]()
+
         
-        /// Loop to cycle through the pixel data and store that data in the arrays
-        /// then append them together
-        for y in 0..<processedImageHeight {
-            for x in 0..<processedImageWidth {
+        // Loop to cycle through the pixel data and store that data in the arrays then append them together
+        for y in 0..<processedImageHeight // cycle through each row in the image
+        {
+            for x in 0..<processedImageWidth // cycle through each pixel in a row
+            {
+                // current pixel position
                 let pixelInfo: Int = ((context.bytesPerRow * y) + x * bytesPerPixel)
-                var r = Float(pixelData[pixelInfo])
-                r /= 255.0
+                let r = Float(pixelData[pixelInfo]) / 255.0
                 x_r_Array.append(r)
-                var g = Float(pixelData[pixelInfo + 1])
-                g /= 255.0
+                let g = Float(pixelData[pixelInfo + 1]) / 255.0
                 x_g_Array.append(g)
-                var b = Float(pixelData[pixelInfo + 2])
-                b /= 255.0
+                let b = Float(pixelData[pixelInfo + 2]) / 255.0
                 x_b_Array.append(b)
-//                let a = Float(pixelData[pixelInfo + 3]) / 255.0
-//                x_a_Array.append(a)
-                
             }
+            // Append contents from each row to y arrays
             y_r_Array.append(contentsOf: x_r_Array)
             y_g_Array.append(contentsOf: x_g_Array)
             y_b_Array.append(contentsOf: x_b_Array)
-//            y_a_Array.append(contentsOf: x_a_Array)
+            // Remove values from x arrays to start over
             x_r_Array.removeAll()
             x_g_Array.removeAll()
             x_b_Array.removeAll()
-//            x_a_Array.removeAll()
         }
+        // Append all three channels to final array
         pixelArray.append(contentsOf: y_r_Array)
         pixelArray.append(contentsOf: y_g_Array)
         pixelArray.append(contentsOf: y_b_Array)
@@ -170,26 +171,44 @@ class ClassifierViewModel {
 
     
     /// A helper function that find the prediction from the object classifier model based on the values in the MLMultiArray
+    /// Note: do not call this function, use classifyImage method
     /// - Parameters: multiArray: MLMultiArray - array of pixel data for model input
     ///
-    /// - Returns: the prediction of the ObjectClassifierModel object
-    func getPrediction(multiArray: MLMultiArray) -> String {
-        var prediction = "Could not get prediction."
+    /// - Returns: the prediction of the ObjectClassifierModel object as a String
+    func getModelOutput(multiArray: MLMultiArray) throws -> [Float] {
         do {
+            // get prediction from ObjectClassifierModel object
             let input = ObjectClassifierModelInput(keras_tensor_50: multiArray)
             let output = try model.prediction(input: input)
             let outputArray = output.Identity
+            
+            // Iterate through values from output and append to probabilities array
             var probs = [Float]()
             for i in 0..<outputArray.count {
                 probs.append(outputArray[i].floatValue)
             }
-            if let maxElement = probs.max(), let indexOfMax = probs.firstIndex(of: maxElement) {
-                prediction = self.classifier.classes[indexOfMax]
-            }
+            return probs
         } catch {
+            print("Probs array not populated")
             print(error.localizedDescription)
+            throw DataError.missingData
         }
-        return prediction
+    }
+    
+    /// Helper function to get prediction based on the max value from
+    /// the probablity array output from the ObjectClassifierModel object
+    /// - Parameters: probs: [Float] - array of probabilities from the ObjectClassifierModel object
+    ///
+    /// - Returns: the prediction as a String
+    func getPrediction(probs: [Float]) throws -> String {
+         //Find the index of the max value and set prediction to class that cooresponds to that index
+        if let maxElement = probs.max(), let indexOfMax = probs.firstIndex(of: maxElement) {
+            let prediction = self.classifier.classes[indexOfMax]
+            return prediction
+        } else {
+            print("Could not find prediction" )
+            throw DataError.missingData
+        }
     }
 
     /// Helper function for resize CGImage so that the user input image and CGContext will
@@ -198,7 +217,7 @@ class ClassifierViewModel {
     /// - Parameters: newSize: CGSize - new size of the CGImage
     ///
     /// - Returns: resized CGImage
-    private func resizeCGImage(image: CGImage, newSize: CGSize) -> CGImage? {
+    func resizeCGImage(image: CGImage, newSize: CGSize) -> CGImage? {
         // 1. Create a UIGraphicsImageRenderer for easily creating a new bitmap context.
         // The 'format' handles correct scaling for different device resolutions (use scale 1.0 for actual pixels).
         let renderer = UIGraphicsImageRenderer(size: newSize, format: UIGraphicsImageRendererFormat.default())

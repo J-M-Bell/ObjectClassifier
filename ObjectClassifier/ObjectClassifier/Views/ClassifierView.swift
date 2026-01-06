@@ -71,6 +71,8 @@ struct ClassifierView: View {
     }
 
     // Non-mutating helper that updates @State safely from the main thread
+    /// Non-mutating helper that updates @State safely from the main thread
+    /// - Parameters: urls: [URL} - array of URL objectss from user
     private func handleImportedFiles(_ urls: [URL]) {
         guard let url = urls.first else { return }
 
